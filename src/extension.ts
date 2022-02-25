@@ -91,8 +91,6 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	  _notebook: vscode.NotebookDocument,
 	  _controller: vscode.NotebookController
 	): void {
-		// console.log("Execute");
-		console.dir(cells);
 	  for (let cell of cells) {
 		this._doExecution(cell);
 	  }
@@ -100,13 +98,18 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
   
 
 	private async _doExecution(cell: vscode.NotebookCell): Promise<void> {
-		console.log(this._controller.supportedLanguages);
 	  const execution = this._controller.createNotebookCellExecution(cell);
+	//   console.dir(execution);
 	  execution.executionOrder = ++this._executionOrder;
 	  execution.start(Date.now()); // Keep track of elapsed time to execute cell.
   
 	  /* Do some execution here; not implemented */
-  
+
+	  console.log(execution.cell.document.fileName + ":" + execution.cell.index);
+	  
+	  console.log(execution.cell.document.getText());
+	  
+	  
 	  execution.replaceOutput([
 		new vscode.NotebookCellOutput([
 		  vscode.NotebookCellOutputItem.text('Dummy output text!')

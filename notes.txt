@@ -1,0 +1,16 @@
+Need to destroy fragments when code is deleted - maybe via destroying each of ast.statements
+
+What are Substatements?!
+
+Possibly need to replace ACTIVE fragments?! 
+
+Maybe implement graphics via JSON objects with postMessage as described here:
+https://code.visualstudio.com/api/extension-guides/webview
+
+Some styling like this:
+https://github.com/DonJayamanne/typescript-notebook
+
+Also look at codeswing
+
+Notebook style might be appropriate
+https://code.visualstudio.com/api/extension-guides/notebook

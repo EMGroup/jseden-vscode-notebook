@@ -48,7 +48,16 @@
             "language": "eden",
             "scopeName": "source.eden",
             "path": "./syntaxes/eden.tmLanguage.json"
-        }]
+        }],
+		"views":{
+			"explorer": [{"id": "symbolView","name": "symbolView"}]
+		},
+		"viewsWelcome": [
+			{
+			  "view": "JSEdenWelcome",
+			  "contents": "JSEden welcome text"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile && yarn run bundle",
