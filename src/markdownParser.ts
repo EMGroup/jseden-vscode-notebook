@@ -15,14 +15,7 @@ export interface RawNotebookCell {
 }
 
 const LANG_IDS = new Map([
-	['bat', 'batch'],
-	['c++', 'cpp'],
-	['js', 'javascript'],
-	['ts', 'typescript'],
-	['cs', 'csharp'],
-	['py', 'python'],
-	['py2', 'python'],
-	['py3', 'python'],
+	['js-e', 'jseden'],
 ]);
 const LANG_ABBREVS = new Map(
 	Array.from(LANG_IDS.keys()).map(k => [LANG_IDS.get(k), k])

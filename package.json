@@ -1,21 +1,21 @@
 {
-	"name": "vscode-markdown-notebook",
-	"publisher": "ms-vscode",
+	"name": "vscode-eden-notebook",
+	"publisher": "EMGroup",
 	"displayName": "Markdown Notebook",
-	"description": "An extension for editing markdown files in VS Code notebooks",
-	"version": "0.0.26",
+	"description": "An extension for editing jseden/markdown files in VS Code notebooks",
+	"version": "0.0.1",
 	"preview": true,
 	"engines": {
 		"vscode": "^1.57.0"
 	},
 	"repository": {
-		"url": "https://github.com/microsoft/vscode-markdown-notebook"
+		"url": "https://github.com/EMGroup/jseden-vscode-notebook"
 	},
 	"categories": [
 		"Other"
 	],
 	"activationEvents": [
-		"onNotebook:markdown-notebook"
+		"onNotebook:eden-notebook"
 	],
 	"main": "./out/extension.js",
 	"browser": "./out/extension-bundle.js",
@@ -28,8 +28,8 @@
 	"contributes": {
 		"notebooks": [
 			{
-				"type": "markdown-notebook",
-				"displayName": "Markdown Notebook",
+				"type": "eden-notebook",
+				"displayName": "Eden Notebook",
 				"priority": "option",
 				"selector": [
 					{

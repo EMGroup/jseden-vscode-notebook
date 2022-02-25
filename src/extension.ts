@@ -16,7 +16,8 @@ const providerOptions = {
 };
 
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.workspace.registerNotebookSerializer('markdown-notebook', new MarkdownProvider(), providerOptions));
+	context.subscriptions.push(vscode.workspace.registerNotebookSerializer('eden-notebook', new MarkdownProvider(), providerOptions));
+	context.subscriptions.push(new Controller());
 }
 
 // there are globals in workers and nodejs
@@ -58,3 +59,59 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 		value: data.content
 	};
 }
+
+
+
+  class Controller {
+	readonly controllerId = 'eden-controller-id';
+	readonly notebookType = 'eden-notebook';
+	readonly label = 'Eden Notebook';
+	readonly supportedLanguages = ["jseden"];
+  
+	readonly dispose = function(){
+
+	};
+	private readonly _controller: vscode.NotebookController;
+	private _executionOrder = 0;
+  
+	constructor() {
+	  this._controller = vscode.notebooks.createNotebookController(
+		this.controllerId,
+		this.notebookType,
+		this.label
+	  );
+  
+	  this._controller.supportedLanguages = this.supportedLanguages;
+	  this._controller.supportsExecutionOrder = true;
+	  this._controller.executeHandler = this._execute.bind(this);
+	}
+  
+	private _execute(
+	  cells: vscode.NotebookCell[],
+	  _notebook: vscode.NotebookDocument,
+	  _controller: vscode.NotebookController
+	): void {
+		console.log("Execute");
+		console.trace();
+	  for (let cell of cells) {
+		this._doExecution(cell);
+	  }
+	}
+  
+
+	private async _doExecution(cell: vscode.NotebookCell): Promise<void> {
+		console.log(this._controller.supportedLanguages);
+	  const execution = this._controller.createNotebookCellExecution(cell);
+	  execution.executionOrder = ++this._executionOrder;
+	  execution.start(Date.now()); // Keep track of elapsed time to execute cell.
+  
+	  /* Do some execution here; not implemented */
+  
+	  execution.replaceOutput([
+		new vscode.NotebookCellOutput([
+		  vscode.NotebookCellOutputItem.text('Dummy output text!')
+		])
+	  ]);
+	  execution.end(true, Date.now());
+	}
+  }
