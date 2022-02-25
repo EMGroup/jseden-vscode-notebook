@@ -15,7 +15,7 @@ export interface RawNotebookCell {
 }
 
 const LANG_IDS = new Map([
-	['js-e', 'jseden'],
+	['js-e', 'eden'],
 ]);
 const LANG_ABBREVS = new Map(
 	Array.from(LANG_IDS.keys()).map(k => [LANG_IDS.get(k), k])

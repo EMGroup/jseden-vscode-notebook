@@ -66,7 +66,7 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	readonly controllerId = 'eden-controller-id';
 	readonly notebookType = 'eden-notebook';
 	readonly label = 'Eden Notebook';
-	readonly supportedLanguages = ["jseden"];
+	readonly supportedLanguages = ["eden"];
   
 	readonly dispose = function(){
 
@@ -91,8 +91,8 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	  _notebook: vscode.NotebookDocument,
 	  _controller: vscode.NotebookController
 	): void {
-		console.log("Execute");
-		console.trace();
+		// console.log("Execute");
+		console.dir(cells);
 	  for (let cell of cells) {
 		this._doExecution(cell);
 	  }

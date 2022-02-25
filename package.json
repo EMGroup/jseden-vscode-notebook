@@ -37,7 +37,18 @@
 					}
 				]
 			}
-		]
+		],
+		"languages": [{
+            "id": "eden",
+            "aliases": ["Eden", "eden"],
+            "extensions": [".jseden"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "eden",
+            "scopeName": "source.eden",
+            "path": "./syntaxes/eden.tmLanguage.json"
+        }]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile && yarn run bundle",

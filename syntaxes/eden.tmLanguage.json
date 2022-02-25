@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Eden",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.eden",
+				"match": "\\b(if|else|when|do|action|is)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.eden",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.eden",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.eden"
+}
