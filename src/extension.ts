@@ -2,9 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
+const path = require('path');
+const {EdenScript} = require('../edenscript.js');
+import { exec } from 'child_process';
 import * as vscode from 'vscode';
+let cli = require("../js-eden/js/cli.js");
 import { parseMarkdown, writeCellsToMarkdown, RawNotebookCell } from './markdownParser';
+
+let global: any = {};
+let EdenSymbol: any = {};
+let jsedenRunning = false;
+declare global{
+	var EdenSymbol:any;
+}
 
 const providerOptions = {
 	transientMetadata: {
@@ -15,9 +25,73 @@ const providerOptions = {
 	transientOutputs: true
 };
 
+function symbolChanged(sym: any, kind: any){
+    var latestValue;
+    if(sym.cache.up_to_date){
+        latestValue = sym.cache.value;
+    }else{
+        latestValue = sym.value();
+    }
+    var outputMessage = "";
+    if(sym.definition){
+        outputMessage = "[" + sym.getSource() + "]: " + latestValue;
+    }else{
+        outputMessage = sym.name + ": " + latestValue;
+    }
+    console.log(outputMessage);
+	if(latestValue === undefined){
+		latestValue = "@";
+	}
+	// SymbolView.updateSymbol(sym.name,latestValue);
+}
+
+function startJSEden(){
+	console.log("Initialising JSEden");
+	cli.CLIEden.Eden.projectPath = vscode.extensions.getExtension("EMGroup.vscode-eden-notebook")?.extensionPath + "/js-eden/";
+	cli.CLIEden.startCommandLine();
+	cli.CLIEden.eden.root.addGlobal(symbolChanged);
+	cli.CLIEden.EdenSymbol = function(){};
+	cli.CLIEden.EdenSymbol.prototype.value = function(){};
+	EdenSymbol = cli.CLIEden.EdenSymbol;
+	global.eden = cli.CLIEden.eden;
+	global.Eden = cli.CLIEden.Eden;
+	global.EdenSymbol = global.Eden.EdenSymbol;
+	// console.log(global.eden);
+	// console.log(global.Eden);
+	jsedenRunning = true;
+	// VSymbolList.startWebView();
+}
+
+function resetFragmentSource(){
+	let editor = vscode.window.activeTextEditor;
+	if(typeof editor === 'undefined'){return;};
+	let thisFrag = EdenScript.fragments[editor.document.fileName];
+	if(typeof thisFrag !== 'undefined'){
+		thisFrag.setSource(editor.document.getText());
+	}
+}
+
+
 export function activate(context: vscode.ExtensionContext) {
+	jsedenRunning = false;
+
+	global.dc = vscode.languages.createDiagnosticCollection("eden");
+
+	// vscode.workspace.onDidChangeTextDocument(function(){
+	// 	// if(global.scriptTimeout != undefined){
+	// 		clearTimeout(global.scriptTimeout);
+	// 		global.scriptTimeout = setTimeout(resetFragmentSource,500);
+	// 	// }
+	// });
+
+	// Eden.Fragment.listenTo("errored",this,function(frag:any){
+	// 	console.log("Error detected");
+	// });
+	
 	context.subscriptions.push(vscode.workspace.registerNotebookSerializer('eden-notebook', new MarkdownProvider(), providerOptions));
 	context.subscriptions.push(new Controller());
+
+
 }
 
 // there are globals in workers and nodejs
@@ -104,6 +178,34 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	  execution.start(Date.now()); // Keep track of elapsed time to execute cell.
   
 	  /* Do some execution here; not implemented */
+	  let Eden = global.Eden;
+	  let eden = global.eden;
+	  let editor = vscode.window.activeTextEditor;
+
+	  if(!jsedenRunning){
+		startJSEden();
+		global.EdenSymbol = cli.CLIEden.EdenSymbol;
+	  
+		global.eden.project = new global.Eden.Project(undefined,"VSCode Notebook","",global.eden);
+		global.eden.project.start();
+	
+		global.Eden.Fragment.listenTo("errored",this,function(frag: any){
+			console.log("Error");
+			console.dir(frag);
+		});
+	  }
+
+	  let selector = execution.cell.document.fileName + ":" + execution.cell.index;
+
+	  EdenScript.createFragment(selector, function(){
+		let thisFrag = EdenScript.fragments[selector];
+		thisFrag.setSource(execution.cell.document.getText());
+		thisFrag.ast.executeStatement(thisFrag.originast,global.eden.root.scope,thisFrag);
+		remakeErrors(selector,thisFrag.ast.errors);
+	  });
+
+
+		
 
 	  console.log(execution.cell.document.fileName + ":" + execution.cell.index);
 	  
@@ -118,3 +220,26 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	  execution.end(true, Date.now());
 	}
   }
+
+  function remakeErrors(filename:any,errors:any){
+	global.dc.clear();
+	if(typeof errors === 'undefined' || errors.length === 0){
+		return;
+	}
+	let diagnosticMap = new Map();
+	let canonicalFile = vscode.Uri.file(filename).toString();
+	
+	console.log(errors);
+	if(typeof vscode.window.activeTextEditor === 'undefined'){return;}
+	for(let i = 0; i < errors.length; i++){
+		let e = errors[i];
+		let range = new vscode.Range(e.line - 1,0,e.line-1,vscode.window.activeTextEditor.document.lineAt(e.line - 1).range.end.character);
+		let diagnostics = diagnosticMap.get(canonicalFile);
+		if(!diagnostics){diagnostics = [];}
+		diagnostics.push(new vscode.Diagnostic(range,e.toString(),vscode.DiagnosticSeverity.Error));
+		diagnosticMap.set(canonicalFile,diagnostics);
+	}
+	diagnosticMap.forEach((diags,file)=>{
+		global.dc.set(vscode.Uri.parse(file),diags);
+	});
+}
