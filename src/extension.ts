@@ -1,9 +1,6 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 const path = require('path');
 const {EdenScript} = require('../edenscript.js');
+const {SymbolView} = require("../symbolview.js");
 import { exec } from 'child_process';
 import * as vscode from 'vscode';
 let cli = require("../js-eden/js/cli.js");
@@ -42,7 +39,7 @@ function symbolChanged(sym: any, kind: any){
 	if(latestValue === undefined){
 		latestValue = "@";
 	}
-	// SymbolView.updateSymbol(sym.name,latestValue);
+	SymbolView.updateSymbol(sym.name,latestValue);
 }
 
 function startJSEden(){
@@ -74,6 +71,7 @@ function resetFragmentSource(){
 
 export function activate(context: vscode.ExtensionContext) {
 	jsedenRunning = false;
+	SymbolView.activate();
 
 	global.dc = vscode.languages.createDiagnosticCollection("eden");
 
@@ -202,15 +200,7 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 		thisFrag.setSource(execution.cell.document.getText());
 		thisFrag.ast.executeStatement(thisFrag.originast,global.eden.root.scope,thisFrag);
 		remakeErrors(selector,thisFrag.ast.errors);
-	  });
-
-
-		
-
-	  console.log(execution.cell.document.fileName + ":" + execution.cell.index);
-	  
-	  console.log(execution.cell.document.getText());
-	  
+	  });	  
 	  
 	  execution.replaceOutput([
 		new vscode.NotebookCellOutput([
