@@ -6,6 +6,18 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Launch JSEden CLI",
+			"program": "${workspaceFolder}/jseden-cli.js",
+			"request": "launch",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "pwa-node",
+			"console": "integratedTerminal"
+		},
+
+
+		{
 			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",

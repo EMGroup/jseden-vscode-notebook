@@ -188,8 +188,8 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 		global.eden.project.start();
 	
 		global.Eden.Fragment.listenTo("errored",this,function(frag: any){
-			console.log("Error");
-			console.dir(frag);
+			// console.log("Error");
+			// console.dir(frag);
 		});
 	  }
 
@@ -199,7 +199,7 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 		let thisFrag = EdenScript.fragments[selector];
 		thisFrag.setSource(execution.cell.document.getText());
 		thisFrag.ast.executeStatement(thisFrag.originast,global.eden.root.scope,thisFrag);
-		remakeErrors(selector,thisFrag.ast.errors);
+		remakeErrors(execution.cell.document.fileName,thisFrag.ast.errors);
 	  });	  
 	  
 	  execution.replaceOutput([
@@ -224,6 +224,7 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	for(let i = 0; i < errors.length; i++){
 		let e = errors[i];
 		let range = new vscode.Range(e.line - 1,0,e.line-1,vscode.window.activeTextEditor.document.lineAt(e.line - 1).range.end.character);
+		// let range = new vscode.Range(e.line,0,e.line,2);
 		let diagnostics = diagnosticMap.get(canonicalFile);
 		if(!diagnostics){diagnostics = [];}
 		diagnostics.push(new vscode.Diagnostic(range,e.toString(),vscode.DiagnosticSeverity.Error));

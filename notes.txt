@@ -14,3 +14,5 @@ Also look at codeswing
 
 Notebook style might be appropriate
 https://code.visualstudio.com/api/extension-guides/notebook
+
+Might require disabling http.systemCertificates, see https://gitlab.com/gitlab-org/gitlab-vscode-extension/-/issues/245#fn1-7382

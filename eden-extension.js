@@ -20,7 +20,7 @@ let jsedenRunning = false;
 
 function startJSEden(){
 	console.log("Initialising JSEden");
-	cli.CLIEden.Eden.projectPath = vscode.extensions.getExtension("undefined_publisher.construalcode").extensionPath + "/js-eden/";
+	cli.CLIEden.Eden.projectPath = vscode.extensions.getExtension("EMGroup.vscode-eden-notebook").extensionPath + "/js-eden/";
 	cli.CLIEden.startCommandLine();
 	cli.CLIEden.eden.root.addGlobal(symbolChanged);
 	cli.CLIEden.EdenSymbol = function(){};
