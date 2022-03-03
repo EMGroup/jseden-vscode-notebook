@@ -1,6 +1,7 @@
 const path = require('path');
 const {EdenScript} = require('../edenscript.js');
-const {SymbolView} = require("../symbolview.js");
+import { SymbolView } from './symbolview'; 
+// const {SymbolView} = require("../symbolview.js");
 import { exec } from 'child_process';
 import * as vscode from 'vscode';
 let cli = require("../js-eden/js/cli.js");
@@ -9,6 +10,7 @@ import { parseMarkdown, writeCellsToMarkdown, RawNotebookCell } from './markdown
 let global: any = {};
 let EdenSymbol: any = {};
 let jsedenRunning = false;
+let mainSymbolView:SymbolView;
 declare global{
 	var EdenSymbol:any;
 }
@@ -35,11 +37,11 @@ function symbolChanged(sym: any, kind: any){
     }else{
         outputMessage = sym.name + ": " + latestValue;
     }
-    console.log(outputMessage);
+    // console.log(outputMessage);
 	if(latestValue === undefined){
 		latestValue = "@";
 	}
-	SymbolView.updateSymbol(sym.name,latestValue);
+	mainSymbolView.updateSymbol(sym.name,latestValue);
 }
 
 function startJSEden(){
@@ -71,7 +73,8 @@ function resetFragmentSource(){
 
 export function activate(context: vscode.ExtensionContext) {
 	jsedenRunning = false;
-	SymbolView.activate();
+	mainSymbolView = new SymbolView();
+	mainSymbolView.activate();
 
 	global.dc = vscode.languages.createDiagnosticCollection("eden");
 
