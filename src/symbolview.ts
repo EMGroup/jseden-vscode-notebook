@@ -40,18 +40,21 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 		  ];
 	}
 
-	updateSymbol(n:string,v:string){
+	updateSymbol(sym:any,v:string){
+		let n = sym.name;
+		if(categorize(sym) !== "obs"){
+			return;
+		}
+
 		let prevVal:string = '@';
 		let symObject:TreeItem = this.obsDict[n];
 		if(typeof this.obsDict[n] !== 'undefined'){
 			prevVal = symObject.value || '';
 		}
+
 		if(prevVal !== v){
 			this.obsDict[n] = new TreeItem(n,v);
-			// this.obs.push(new TreeItem(n + " is " + v));
-
 			this.obsList.children = [];
-
 			for(const [key, value] of Object.entries(this.obsDict)){
 				this.obsList.children.push(value as TreeItem);
 			}
@@ -90,3 +93,41 @@ class TreeItem extends vscode.TreeItem {
 	  this.value = value;
 	}
   }
+
+function categorize(symbol:any):string{
+	var symbolType = "obs";
+
+	// Does the symbol have a definition
+	if (!symbol.definition) {
+		if (typeof(symbol.cache.value) === "function") {
+			if (/\breturn\s+([^\/;]|(\/[^*\/]))/.test(symbol.cache.value.toString())) {
+				symbolType = "func";
+			} else {
+				symbolType = "agent";
+			}
+		} else {
+			symbolType = "obs";
+		}
+	} else {
+		// Find out what kind of definition it is (proc, func or plain)
+		var definition = symbol.getSource();
+	
+		if (/^proc\s/.test(definition)) {
+			symbolType = "agent";
+		} else if (/^func\s/.test(definition)) {
+			symbolType = "func";
+		} else {
+			//Dependency
+			if (typeof(symbol.cache.value) === "function") {
+				if (/\breturn\s+([^\/;]|(\/[^*\/]))/.test(symbol.cache.value.toString())) {
+					symbolType = "func";
+				} else {
+					symbolType = "agent";
+				}
+			} else {
+				symbolType = "obs";
+			}
+		}
+	}
+	return symbolType;
+}

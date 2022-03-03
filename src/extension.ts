@@ -32,16 +32,17 @@ function symbolChanged(sym: any, kind: any){
         latestValue = sym.value();
     }
     var outputMessage = "";
+	
     if(sym.definition){
         outputMessage = "[" + sym.getSource() + "]: " + latestValue;
     }else{
-        outputMessage = sym.name + ": " + latestValue;
+        outputMessage = latestValue;
     }
     // console.log(outputMessage);
 	if(latestValue === undefined){
 		latestValue = "@";
 	}
-	mainSymbolView.updateSymbol(sym.name,latestValue);
+	mainSymbolView.updateSymbol(sym,latestValue);
 }
 
 function startJSEden(){
