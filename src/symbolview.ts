@@ -34,9 +34,9 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 		this.obs = [];
 		this.funcs = [];
 		this.obsList = new TreeItem(
-			'Observables', '',"heading", this.obs);
+			'Observables', '',"heading", undefined, this.obs);
 		this.funcList = new TreeItem(
-			'Functions', '', "heading", this.funcs);
+			'Functions', '', "heading", undefined, this.funcs);
 		this.data = [
 			this.obsList,
 			this.funcList
@@ -52,7 +52,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 				prevVal = symObject.value || '';
 			}
 			if(prevVal !== v){
-				this.obsDict[n] = new TreeItem(n,v,sym.definition ? "def" : "obs");
+				this.obsDict[n] = new TreeItem(n,v,sym.definition ? "def" : "obs",sym.getSource());
 				this.obsList.children = [];
 				for(const [key, value] of Object.entries(this.obsDict)){
 					this.obsList.children.push(value as TreeItem);
@@ -67,7 +67,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 				prevVal = symObject.value || '';
 			}
 			if(prevVal !== v){
-				this.funcDict[n] = new TreeItem(n,v,"func");
+				this.funcDict[n] = new TreeItem(n,v,"func",sym.getSource());
 				this.funcList.children = [];
 				for(const [key, value] of Object.entries(this.funcDict)){
 					this.funcList.children.push(value as TreeItem);
@@ -100,7 +100,7 @@ class TreeItem extends vscode.TreeItem {
 	value: string;
 	type:string;
   
-	constructor(name:string,value: string,type:string, children?: TreeItem[]) {
+	constructor(name:string,value: string,type:string, definition?:string, children?: TreeItem[]) {
 	  let label = name;
 	  if(type === "obs" || type === "func"){
 		label += " = " + value;
@@ -108,10 +108,15 @@ class TreeItem extends vscode.TreeItem {
 		  label += " is " + value;
 	  }
 
+	  let tooltip = new vscode.MarkdownString("**" + definition + "**");
 	  super(
-		  {label:label,highlights:[[0,5],[9,12]]},
+		  {label:label,
+			// highlights:[[0,5],[9,12]]
+		},
 		  children === undefined ? vscode.TreeItemCollapsibleState.None :
 								   vscode.TreeItemCollapsibleState.Expanded);
+	  this.tooltip = tooltip;
+	  
 	  this.children = children;
 	  this.name = name;
 	  this.value = value;
