@@ -110,9 +110,7 @@ class TreeItem extends vscode.TreeItem {
 
 	  let tooltip = new vscode.MarkdownString("**" + definition + "**");
 	  super(
-		  {label:label,
-			// highlights:[[0,5],[9,12]]
-		},
+		  {label:label},
 		  children === undefined ? vscode.TreeItemCollapsibleState.None :
 								   vscode.TreeItemCollapsibleState.Expanded);
 	  this.tooltip = tooltip;
