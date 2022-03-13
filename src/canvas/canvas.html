@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Canvas</title>
+	</head>
+	<script>
+		let context;
+		let canvas;
+		document.addEventListener("DOMContentLoaded",function(event){
+			window.addEventListener("message", (event) => {
+				const message = event.data;
+				if(message.objectType === 'context'){
+					if(typeof message.value === 'undefined'){
+						let targetFunction = context[message.name];
+						let args = message.arguments;
+						console.log(targetFunction);
+						try{
+							// if(message.name == "fillRect"){
+							// 	targetFunction.apply(this,[20,20,70,70]);
+							// }else{
+								targetFunction.apply(context,args);
+							// }
+
+						}catch(e){
+							console.log("Error",message);
+							console.dir(e);
+						}
+					}else{
+						context[message.name] = message.value;
+					}
+				}
+				console.log(message);
+				// document.body.style.backgroundColor = message.color;
+			});
+			canvas = window.document.getElementsByTagName('canvas')[0];
+			context = canvas.getContext('2d');
+			// context.fillStyle = "#ff0000";
+			// context.fillRect(50,50,100,100);
+
+			// const centerX = canvas.width / 2;
+			// const centerY = canvas.height / 2;
+			// const radius = 70;
+
+			// context.beginPath();
+			// context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+			// context.fillStyle = 'green';
+			// context.fill();
+			// context.lineWidth = 5;
+			// context.strokeStyle = '#003300';
+			// context.stroke();
+		});
+	</script>
+	<style>
+		canvas{
+			border:1px solid;
+			width: 400px;
+			height: 400px;
+		}
+	</style>
+	<body>
+		<canvas>
+
+		</canvas>
+	</body>
+</html>
