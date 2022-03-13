@@ -1,6 +1,7 @@
 const path = require('path');
 const {EdenScript} = require('../edenscript.js');
 import { SymbolView } from './symbolview'; 
+import { Canvas } from './canvas';
 // const {SymbolView} = require("../symbolview.js");
 import { exec } from 'child_process';
 import * as vscode from 'vscode';
@@ -11,6 +12,8 @@ let global: any = {};
 let EdenSymbol: any = {};
 let jsedenRunning = false;
 let mainSymbolView:SymbolView;
+
+let mainCanvas:Canvas;
 declare global{
 	var EdenSymbol:any;
 }
@@ -31,13 +34,13 @@ function symbolChanged(sym: any, kind: any){
     }else{
         latestValue = sym.value();
     }
-    var outputMessage = "";
+    // var outputMessage = "";
 	
-    if(sym.definition){
-        outputMessage = "[" + sym.getSource() + "]: " + latestValue;
-    }else{
-        outputMessage = latestValue;
-    }
+    // if(sym.definition){
+    //     outputMessage = "[" + sym.getSource() + "]: " + latestValue;
+    // }else{
+    //     outputMessage = latestValue;
+    // }
     // console.log(outputMessage);
 	if(latestValue === undefined){
 		latestValue = "@";
@@ -79,6 +82,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	global.dc = vscode.languages.createDiagnosticCollection("eden");
 
+	if(typeof mainCanvas === 'undefined'){
+		mainCanvas = new Canvas();
+	}
+	mainCanvas.initialise();
 	// vscode.workspace.onDidChangeTextDocument(function(){
 	// 	// if(global.scriptTimeout != undefined){
 	// 		clearTimeout(global.scriptTimeout);
@@ -89,6 +96,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// Eden.Fragment.listenTo("errored",this,function(frag:any){
 	// 	console.log("Error detected");
 	// });
+	
+
 	
 	context.subscriptions.push(vscode.workspace.registerNotebookSerializer('eden-notebook', new MarkdownProvider(), providerOptions));
 	context.subscriptions.push(new Controller());
@@ -197,7 +206,9 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 		});
 	  }
 
-	  let selector = execution.cell.document.fileName + ":" + execution.cell.index;
+	//   let selector = execution.cell.document.fileName + ":" + execution.cell.index;
+	  let selector = filenameToActionName(execution.cell.document.fileName) + execution.cell.index;
+	  console.log("This selector is " + selector);
 
 	  EdenScript.createFragment(selector, function(){
 		let thisFrag = EdenScript.fragments[selector];
@@ -213,6 +224,13 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 	  ]);
 	  execution.end(true, Date.now());
 	}
+  }
+
+  function filenameToActionName(str:string){
+	  let parts = str.split("\\");
+	  let filename = parts[parts.length - 1];
+	  filename = filename.replace(/\./g,"");
+	  return filename;
   }
 
   function remakeErrors(filename:any,errors:any){
