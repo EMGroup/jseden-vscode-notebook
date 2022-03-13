@@ -33,9 +33,9 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 	constructor(){
 		this.obs = [];
 		this.funcs = [];
-		this.obsList = new TreeItem(
+		this.obsList = TreeItem.makeTreeItem(
 			'Observables', '',"heading", undefined, this.obs);
-		this.funcList = new TreeItem(
+		this.funcList = TreeItem.makeTreeItem(
 			'Functions', '', "heading", undefined, this.funcs);
 		this.data = [
 			this.obsList,
@@ -52,7 +52,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 				prevVal = symObject.value || '';
 			}
 			if(prevVal !== v){
-				this.obsDict[n] = new TreeItem(n,v,sym.definition ? "def" : "obs",sym.getSource());
+				this.obsDict[n] = TreeItem.makeTreeItem(n,v,sym.definition ? "def" : "obs",sym.getSource());
 				this.obsList.children = [];
 				for(const [key, value] of Object.entries(this.obsDict)){
 					this.obsList.children.push(value as TreeItem);
@@ -67,7 +67,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 				prevVal = symObject.value || '';
 			}
 			if(prevVal !== v){
-				this.funcDict[n] = new TreeItem(n,v,"func",sym.getSource());
+				this.funcDict[n] = TreeItem.makeTreeItem(n,v,"func",sym.getSource());
 				this.funcList.children = [];
 				for(const [key, value] of Object.entries(this.funcDict)){
 					this.funcList.children.push(value as TreeItem);
@@ -100,15 +100,7 @@ class TreeItem extends vscode.TreeItem {
 	value: string;
 	type:string;
   
-	constructor(name:string,value: string,type:string, definition?:string, children?: TreeItem[]) {
-	  let label = name;
-	  if(type === "obs" || type === "func"){
-		label += " = " + value;
-	  }else if(type === "def"){
-		  label += " is " + value;
-	  }
-
-	  let tooltip = new vscode.MarkdownString("**" + definition + "**");
+	constructor(name:string, value:string, type: string, label:string,tooltip:vscode.MarkdownString, children?: TreeItem[]) {
 	  super(
 		  {label:label},
 		  children === undefined ? vscode.TreeItemCollapsibleState.None :
@@ -121,7 +113,18 @@ class TreeItem extends vscode.TreeItem {
 	  this.type = type;
 	}
 	iconPath = vscode.ThemeIcon.File;
-  }
+
+	public static makeTreeItem(name:string,value:string,type:string,definition?:string,children?: TreeItem[]):TreeItem{		
+		let label = name;
+		if(type === "obs" || type === "func"){
+		  label += " = " + value;
+		}else if(type === "def"){
+			label += " is " + value;
+		}
+		let tooltip = new vscode.MarkdownString("**" + definition + "**");
+		return new TreeItem(name,value,type,label,tooltip,children);
+	}
+}
 
 function categorize(symbol:any):string{
 	var symbolType = "obs";
