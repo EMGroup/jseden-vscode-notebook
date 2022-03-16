@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { EventEmitter, Event } from 'vscode';
+import { Z_ASCII } from 'zlib';
 
 export class SymbolView{
 	dataprovider:TreeDataProvider;
@@ -14,6 +15,10 @@ export class SymbolView{
 	updateSymbol(n:string,v:string){
 		this.dataprovider.updateSymbol(n,v);
 	}
+
+	updateFilter(f:string){
+		this.dataprovider.updateFilter(f);
+	}
 }
 
 class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
@@ -26,6 +31,8 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 	obsList:TreeItem;
 	funcList:TreeItem;
 
+	filter:string;
+
 	private _onDidChangeTreeData: EventEmitter<TreeItem | undefined> = new EventEmitter<TreeItem | undefined>();
 
   	readonly onDidChangeTreeData: Event<TreeItem | undefined> = this._onDidChangeTreeData.event;
@@ -37,45 +44,62 @@ class TreeDataProvider implements vscode.TreeDataProvider<TreeItem>{
 			'Observables', '',"heading", undefined, this.obs);
 		this.funcList = TreeItem.makeTreeItem(
 			'Functions', '', "heading", undefined, this.funcs);
+		this.filter = '';
 		this.data = [
 			this.obsList,
 			this.funcList
 		  ];
 	}
 
+	updateFilter(f: string){
+		this.filter = f;
+		this.refresh();
+	}
+
 	updateSymbol(sym:any,v:string){
 		let n = sym.name;
-		let prevVal:string = '@';
-		if(categorize(sym) === "obs"){
+		let prevVal;
+		let category = categorize(sym);
+		console.log(n,category,v);
+		if(category === "obs"){
 			let symObject:TreeItem = this.obsDict[n];
-			if(typeof this.obsDict[n] !== 'undefined'){
-				prevVal = symObject.value || '';
+			if(typeof symObject !== 'undefined'){
+				prevVal = symObject.value || undefined;
 			}
+
 			if(prevVal !== v){
 				this.obsDict[n] = TreeItem.makeTreeItem(n,v,sym.definition ? "def" : "obs",sym.getSource());
 				this.obsList.children = [];
-				for(const [key, value] of Object.entries(this.obsDict)){
-					this.obsList.children.push(value as TreeItem);
+				let keys = Object.keys(this.obsDict);
+				keys.sort();
+				for(var i = 0; i < keys.length; i++){
+					this.obsList.children.push(this.obsDict[keys[i]]);
 				}
+
+				// for(const [key, value] of Object.entries(this.obsDict)){
+					
+				// }
 				this.refresh();
 			}
+
 			return;
 		}
-		if(categorize(sym) === "func"){
-			let symObject:TreeItem = this.funcDict[n];
-			if(typeof this.funcDict[n] !== 'undefined'){
-				prevVal = symObject.value || '';
-			}
-			if(prevVal !== v){
-				this.funcDict[n] = TreeItem.makeTreeItem(n,v,"func",sym.getSource());
-				this.funcList.children = [];
-				for(const [key, value] of Object.entries(this.funcDict)){
-					this.funcList.children.push(value as TreeItem);
-				}
-				this.refresh();
-			}
-			return;
-		}
+
+		// if(category === "func"){
+		// 	let symObject:TreeItem = this.funcDict[n];
+		// 	if(typeof this.funcDict[n] !== 'undefined'){
+		// 		prevVal = symObject.value || '';
+		// 	}
+		// 	if(prevVal !== v){
+		// 		this.funcDict[n] = TreeItem.makeTreeItem(n,v,"func",sym.getSource());
+		// 		this.funcList.children = [];
+		// 		for(const [key, value] of Object.entries(this.funcDict)){
+		// 			this.funcList.children.push(value as TreeItem);
+		// 		}
+		// 		this.refresh();
+		// 	}
+		// 	return;
+		// }
 	}
 
 	refresh(){
@@ -99,6 +123,7 @@ class TreeItem extends vscode.TreeItem {
 	name: string;
 	value: string;
 	type:string;
+	visible:boolean;
   
 	constructor(name:string, value:string, type: string, label:string,tooltip:vscode.MarkdownString, children?: TreeItem[]) {
 	  super(
@@ -111,6 +136,7 @@ class TreeItem extends vscode.TreeItem {
 	  this.name = name;
 	  this.value = value;
 	  this.type = type;
+	  this.visible = true;
 	}
 	iconPath = vscode.ThemeIcon.File;
 
