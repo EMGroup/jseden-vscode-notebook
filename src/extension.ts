@@ -6,6 +6,7 @@ import { Canvas } from './canvas';
 import { exec } from 'child_process';
 import * as vscode from 'vscode';
 let cli = require("../js-eden/js/cli.js");
+
 import { parseMarkdown, writeCellsToMarkdown, RawNotebookCell } from './markdownParser';
 
 let global: any = {};
@@ -46,6 +47,7 @@ function symbolChanged(sym: any, kind: any){
 		latestValue = "@";
 	}
 	mainSymbolView.updateSymbol(sym,latestValue);
+	// console.log(sym.name);
 }
 
 function startJSEden(){
@@ -86,6 +88,9 @@ export function activate(context: vscode.ExtensionContext) {
 		mainCanvas = new Canvas();
 	}
 	mainCanvas.initialise();
+
+	// mainCanvas.getWebview().postMessage({color: "purple"});
+	cli.CLIEden.Eden.webview = mainCanvas.getWebview();
 	// vscode.workspace.onDidChangeTextDocument(function(){
 	// 	// if(global.scriptTimeout != undefined){
 	// 		clearTimeout(global.scriptTimeout);
@@ -96,9 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Eden.Fragment.listenTo("errored",this,function(frag:any){
 	// 	console.log("Error detected");
 	// });
-	
 
-	
 	context.subscriptions.push(vscode.workspace.registerNotebookSerializer('eden-notebook', new MarkdownProvider(), providerOptions));
 	context.subscriptions.push(new Controller());
 
@@ -212,7 +215,9 @@ export function rawToNotebookCellData(data: RawNotebookCell): vscode.NotebookCel
 
 	  EdenScript.createFragment(selector, function(){
 		let thisFrag = EdenScript.fragments[selector];
-		thisFrag.setSource(execution.cell.document.getText());
+		let codeText = execution.cell.document.getText();
+		// console.log(codeText);
+		thisFrag.setSource(codeText);
 		thisFrag.ast.executeStatement(thisFrag.originast,global.eden.root.scope,thisFrag);
 		remakeErrors(execution.cell.document.fileName,thisFrag.ast.errors);
 	  });	  
