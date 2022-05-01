@@ -37,68 +37,72 @@
 			canvas = window.document.getElementsByTagName('canvas')[0];
 			context = canvas.getContext('2d');
 			window.addEventListener("message", (event) => {
-				const message = event.data;
-				let reconStr = message.objectType;
-				if(typeof message.value == 'undefined'){
-					reconStr += "." + message.name + "(" + message.arguments + ")";
-				}else{
-					reconStr += "." + message.name + " = " + message.value;
-				}
-				if((message.name === "save") || (message.name === "restore")){
-					return;
-				}
-				// if((message.name !== "drawBackgroundRect")){
-				// 	return;
-				// }
-				console.log("msgrecvd",reconStr);
-				if(message.objectType === 'context'){
-					if(typeof message.value === 'undefined'){
-
-						if(message.name === "drawBackgroundRect"){
-							resetCanvas();
-							return;
-						}
-
-						if(message.name === "toJSON"){
-							return context.toJSON();
-						}
-
-						let targetFunction = context[message.name];
-						let args = message.arguments;
-						try{
-							targetFunction.apply(context,args);
-						}catch(e){
-							console.log({context});
-							console.log("Error",message);
-							console.dir(e);
-						}
-						// if(message.name === "strokeRect"){
-						// 	console.log("msgrecvd - strokeRect");
-						// 	// context.strokeRect(10,20,50,50);
-						// }
+				let messages = event.data;
+				for(let i in messages){
+					let message = messages[i];
+					let reconStr = message.objectType;
+					if(typeof message.value == 'undefined'){
+						reconStr += "." + message.name + "(" + message.arguments + ")";
 					}else{
-						context[message.name] = message.value;
+						reconStr += "." + message.name + " = " + message.value;
+					}
+					if((message.name === "save") || (message.name === "restore")){
+						return;
+					}
+					// if((message.name !== "drawBackgroundRect")){
+					// 	return;
+					// }
+					console.log("msgrecvd",reconStr);
+					if(message.objectType === 'context'){
+						if(typeof message.value === 'undefined'){
+
+							if(message.name === "drawBackgroundRect"){
+								resetCanvas();
+								return;
+							}
+
+							if(message.name === "toJSON"){
+								return context.toJSON();
+							}
+
+							let targetFunction = context[message.name];
+							let args = message.arguments;
+							try{
+								targetFunction.apply(context,args);
+							}catch(e){
+								console.log({context});
+								console.log("Error",message);
+								console.dir(e);
+							}
+							// if(message.name === "strokeRect"){
+							// 	console.log("msgrecvd - strokeRect");
+							// 	// context.strokeRect(10,20,50,50);
+							// }
+						}else{
+							context[message.name] = message.value;
+						}
+					}
+
+					if(message.objectType === 'canvas'){
+						if(typeof message.value === 'undefined'){
+							let targetFunction = canvas[message.name];
+							let args = message.arguments;
+							
+							try{
+								targetFunction.apply(context,args);
+							}catch(e){
+								console.log("Error",message);
+								console.dir(e);
+							}
+						}else{
+							if(message.name === "width" || message.name === "height"){
+								return;
+							}
+							canvas[message.name] = message.value;
+						}
 					}
 				}
 
-				if(message.objectType === 'canvas'){
-					if(typeof message.value === 'undefined'){
-						let targetFunction = canvas[message.name];
-						let args = message.arguments;
-						
-						try{
-							targetFunction.apply(context,args);
-						}catch(e){
-							console.log("Error",message);
-							console.dir(e);
-						}
-					}else{
-						if(message.name === "width" || message.name === "height"){
-							return;
-						}
-						canvas[message.name] = message.value;
-					}
-				}
 			});
 			// let saveOld = canvas.save;
 			// let restoreOld = canvas.restore;
